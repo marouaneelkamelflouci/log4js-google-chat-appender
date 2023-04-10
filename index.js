@@ -2,27 +2,77 @@ const axios = require('axios');
 let threadName = '';
 let messageInterval = 24*60*60*1000;
 let setUserDefinedInterval = (messageInterval) => {
-    // console.log("In set interval...");
     setInterval(function () {
-        // console.log('Reseting thread name ', new Date().toLocaleTimeString());
         threadName = '';
     }, messageInterval);
 };
 
-let sendMessage = (message, webhookUrl) => {
+let sendMessage = (logType, categoryName, message, webhookUrl, appName) => {
     if(message.length>4096){
-        console.log('log4js-hangout warning: Length of error message exceeded 4096 characters. Hangout allows only 4096 characters, so error message trimmed to 4096 characters.');
+        console.log('log4js-google-chat warning: Length of error message exceeded 4096 characters. Hangout allows only 4096 characters, so error message trimmed to 4096 characters.');
         message = message.substr(0, 4096);
     }
     axios({
         method: 'POST',
         url: webhookUrl,
         data: {
-            text: message,
-            thread: {
-                name: threadName
-            }
-        },
+            "cardsV2": [
+              {
+                "cardId": "unique-card-id",
+                "card": {
+                  "header": {
+                    "title": appName,
+                    "subtitle": logType,
+                    "imageUrl":"https://w7.pngwing.com/pngs/452/24/png-transparent-js-logo-node-logos-and-brands-icon-thumbnail.png",
+                    "imageType": "CIRCLE",
+                    "imageAltText": "Node js",
+                  },
+                  "sections": [
+                    {
+                      "header": "Error Info",
+                      "uncollapsibleWidgetsCount": 1,
+                      "widgets": [
+                        {
+                            "textParagraph": {
+                                "text": message
+                            }
+                        },
+                        {
+                            "divider": {}
+                        },
+                        {
+                          "decoratedText": {
+                            "icon": {
+                              "knownIcon": "CLOCK",
+                            },
+                            "text": "Not an",
+                            "switchControl": {
+                                "name": "has_been_resolved",
+                                "selected": false,
+                                "controlType": "CHECKBOX"
+                            }
+                          }
+                        },
+                        {
+                            "decoratedText": {
+                              "icon": {
+                                "knownIcon": "CLOCK",
+                              },
+                              "text": "Issue resolved",
+                              "switchControl": {
+                                  "name": "has_been_resolved",
+                                  "selected": false,
+                                  "controlType": "CHECKBOX"
+                              }
+                            }
+                          }
+                      ],
+                    },
+                  ],
+                },
+              }
+            ],
+          },
         header: {
             'Content-Type': 'application/json',
             'charset': 'UTF-8'
@@ -33,7 +83,7 @@ let sendMessage = (message, webhookUrl) => {
         }
     })
         .catch(function (err) {
-        console.error('log4js hangout appender - Error happened', 'Error in calling webhook', err);
+        console.error('log4js google chat appender - Error happened', 'Error in calling webhook', err);
     });
 
 };
@@ -44,30 +94,25 @@ function configure(config, layouts) {
     if (config.layout) {
         layout = layouts.layout(config.layout.type, config.layout);
     }
-    if (config.space && config.key && config.token)
-        config.webhookUrl = `https://chat.googleapis.com/v1/spaces/${config.space}/messages?key=${config.key}&token=${config.token}`;
-    else if (!config.webhookUrl)
-        console.error('log4js hangout appender - Incomplete configurations');
+    if (!config.webhookUrl){
+        console.error('log4js google chat appender - Incomplete configurations');
+    }
     if (config.sendInterval && !isNaN(config.sendInterval)) {
         setUserDefinedInterval(parseInt(config.sendInterval))
-    }
-    else{
+    } else{
         setUserDefinedInterval(messageInterval);
     }
-    return hangoutAppender(config, layout);
+    return googleChatAppender(config, layout);
 }
 
-function hangoutAppender(config, layout, pattern) {
+function googleChatAppender(config, layout, pattern) {
     const appender = (loggingEvent) => {
         if (!config.webhookUrl)
-            console.error('log4js hangout appender - Error happened', 'WebHook not defined in config');
+            console.error('log4js google chat appender - Error happened', 'WebHook not defined in config');
         else
-            sendMessage(layout(loggingEvent), config.webhookUrl);
+            sendMessage(loggingEvent.level.levelStr, loggingEvent.categoryName, message, config.webhookUrl,loggingEvent.context.app_name);
     };
-
-    //TODO: implement time-interval
     return appender;
 }
-
 exports.configure = configure;
 
