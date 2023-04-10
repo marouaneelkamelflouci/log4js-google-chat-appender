@@ -1,0 +1,30 @@
+{
+    "name": "@marouaneelkamel/log4js-google-chat-appender",
+    "version": "1.0.0",
+    "description": "Log4js google chat appender",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+      "log4js",
+      "log",
+      "node",
+      "logger",
+      "ms-teams",
+      "appender",
+      "ms teams",
+      "teams",
+      "chat",
+      "webhook"
+    ],
+    "author": "Marouane Elkamel",
+    "license": "GPL-3.0",
+    "bugs": {
+      "url": "https://github.com/MarouaneElkamel/log4js-google-chat-appender.git"
+    },
+    "homepage": "https://github.com/MarouaneElkamel/log4js-google-chat-appender.git",
+    "dependencies": {
+      "ms-teams-webhook": "1.0.4"
+    }
+  }
